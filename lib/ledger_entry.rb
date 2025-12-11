@@ -80,12 +80,12 @@ class LedgerEntry
 
   # Check if this is a debit entry
   def debit?
-    @side = :debit
+    @side == :debit
   end
 
   # Check if this is a credit entry
   def credit?
-    @side = :credit
+    @side == :credit
   end
 
   # Get the signed amount
