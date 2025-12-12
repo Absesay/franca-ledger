@@ -73,11 +73,11 @@ class Ledger
     account_entries = @entries.select { |entry| entry.account == account }
 
     if account.debit_increases?
-      debit = account_entries.select(&:debit).reduce(BigDecimal("0")) { |sum, entry| sum + entry.amount }
+      debits = account_entries.select(&:debit).reduce(BigDecimal("0")) { |sum, entry| sum + entry.amount }
       credits = account_entries.select(&:credit).reduce(BigDecimal("0")) { |sum, entry| sum + entry.amount }
       debits - credits
     else
-      debit = account_entries.select(&:debit).reduce(BigDecimal("0")) { |sum, entry| sum + entry.amount }
+      debits = account_entries.select(&:debit).reduce(BigDecimal("0")) { |sum, entry| sum + entry.amount }
       credits = account_entries.select(&:credit).reduce(BigDecimal("0")) { |sum, entry| sum + entry.amount }
       credits - debits
     end
