@@ -93,6 +93,40 @@ class TrialBalance
     @rows.find { |row| row.account == account }
   end
 
+  # Format trial balance as a string
+  # Useful for printing or displaying
+  #
+  # @return [String] Formatted trial balance
+  def to_s
+    lines = []
+    lines << "Trial Balance as of #{@date}"
+    lines << "=" * 80
+    lines << sprintf("%-30s %15s %15s", "Account", "Debit", "Credit")
+    lines << "-" * 80
+
+    @rows.each do |row|
+      debit_str = row.debit_balance && row.debit_balance > 0 ? format_amount(row.debit_balance) : ""
+      credit_str = row.credit_balance && row.credit_balance > 0 ? format_amount(row.credit_balance) : ""
+      lines << sprintf("%-30s %15s %15s", row.account.name, debit_str, credit_str)
+    end
+
+    lines << "-" * 80
+    lines << sprintf("%-30s %15s %15s", "TOTAL", format_amount(total_debits), format_amount(total_credits))
+
+    if balanced?
+      lines << "✓ BALANCED"
+    else
+      lines << "✗ OUT OF BALANCE by #{format_amount(imbalance.abs)}"
+    end
+
+    lines.join("\n")
+  end
+
+  def inspect
+    status = balanced? ? "balanced" : "out of balance"
+    "#<TrialBalance:#{@rows.length} accounts, #{status}>"
+  end
+
   private
 
   # Build trial balance rows from ledger
@@ -100,7 +134,7 @@ class TrialBalance
   def build_rows
     accounts = @ledger.accounts
 
-    sorted_accounts = account.sort_by(&:number)
+    sorted_accounts = accounts.sort_by(&:number)
 
     sorted_accounts.map do |account|
       balance = @ledger.balance(account)
@@ -126,3 +160,29 @@ class TrialBalance
     sprintf("%.2f", amount)
   end
 end
+
+# Example usage (uncomment to test):
+#
+# # Create accounts and ledger
+# cash = Account.new("Cash", :asset, 1000)
+# revenue = Account.new("Sales Revenue", :income, 4100)
+# ledger = Ledger.new
+#
+# # Post some transactions
+# journal = JournalEntry.new(
+#   description: "Customer payment",
+#   entries: [
+#     { account: cash, debit: 100 },
+#     { account: revenue, credit: 100 }
+#   ]
+# )
+# ledger.post(journal)
+#
+# # Create trial balance
+# trial_balance = TrialBalance.new(ledger)
+#
+# # Check properties
+# puts trial_balance.balanced?      # => true
+# puts trial_balance.total_debits   # => 100.00
+# puts trial_balance.total_credits  # => 100.00
+# puts trial_balance.to_s           # => Formatted report
